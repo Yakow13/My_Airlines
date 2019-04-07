@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">My airlines</string>
+    <string name="no_data">No data</string>
+    <string name="no_connection">No connection</string>
+    <string name="retry">Retry</string>
+    <string name="web">Web</string>
+    <string name="favorite_toggle_off">All</string>
+    <string name="favorite_toggle_on">Fav</string>
+    <string name="filter">Filter</string>
+</resources>
