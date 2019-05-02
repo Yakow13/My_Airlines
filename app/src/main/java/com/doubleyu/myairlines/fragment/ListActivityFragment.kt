@@ -17,7 +17,6 @@ import com.doubleyu.myairlines.R
 import com.doubleyu.myairlines.asynctask.RequestAirlinesData
 import com.doubleyu.myairlines.listener.NetworkTaskListener
 import com.doubleyu.myairlines.manager.AirlineManager
-import com.doubleyu.myairlines.manager.AirlineManager.allAirlines
 import com.doubleyu.myairlines.manager.FilterOption
 import kotlinx.android.synthetic.main.fragment_airlines_list.*
 import java.util.*
@@ -45,7 +44,7 @@ class ListActivityFragment : Fragment(), NetworkTaskListener<List<Airline>> {
 		selectedFilter = FilterOption.ALL
 		initUI()
 
-		if (allAirlines.isEmpty()) {
+		if (!airlineManager.hasData) {
 			refreshData()
 		}
 	}

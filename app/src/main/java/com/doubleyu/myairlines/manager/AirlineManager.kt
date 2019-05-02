@@ -17,7 +17,10 @@ object AirlineManager {
 	private val preferences: SharedPreferences
 		get() = PreferenceManager.getDefaultSharedPreferences(MyAirlinesApplication.instance)
 
-	var allAirlines: List<Airline> = ArrayList()
+	private var allAirlines: List<Airline> = ArrayList()
+	val hasData : Boolean
+		get() {return allAirlines.isNotEmpty()}
+
 
 
 	init {
