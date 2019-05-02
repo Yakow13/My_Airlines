@@ -31,7 +31,7 @@ class AirlineDetailActivity : AppCompatActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(com.doubleyu.myairlines.R.layout.activity_airline_detail)
-		airline = intent.getSerializableExtra(AIRLINE_EXTRA) as Airline
+		airline = intent.getParcelableExtra(AIRLINE_EXTRA) as Airline
 		bindUI()
 	}
 
