@@ -1,12 +1,12 @@
 package com.doubleyu.myairlines.activity
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import androidx.appcompat.app.AppCompatActivity
 import com.doubleyu.myairlines.R
 import com.doubleyu.myairlines.fragment.ListActivityFragment
 import com.doubleyu.myairlines.manager.FilterOption
@@ -20,12 +20,12 @@ class MainListActivity : AppCompatActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContentView(com.doubleyu.myairlines.R.layout.activity_main)
+		setContentView(R.layout.activity_main)
 
 		listActivityFragment = supportFragmentManager.findFragmentByTag(AIRLINES_LIST_FRAGMENT) as ListActivityFragment?
 		if (listActivityFragment == null) {
 			listActivityFragment = ListActivityFragment()
-			supportFragmentManager.beginTransaction().replace(com.doubleyu.myairlines.R.id.main_layout, listActivityFragment!!, AIRLINES_LIST_FRAGMENT).commit()
+			supportFragmentManager.beginTransaction().replace(R.id.main_layout, listActivityFragment!!, AIRLINES_LIST_FRAGMENT).commit()
 		}
 
 		spinnerPosition = savedInstanceState?.getInt(FILTER_SPINNER_POSITION)
@@ -34,7 +34,7 @@ class MainListActivity : AppCompatActivity() {
 	override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 		menuInflater.inflate(R.menu.main_menu, menu)
 
-		val item = menu!!.findItem(com.doubleyu.myairlines.R.id.filter_spinner)
+		val item = menu!!.findItem(R.id.filter_spinner)
 		val adapter = ArrayAdapter(this, R.layout.simple_spinner_item, FilterOption.values())
 
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)

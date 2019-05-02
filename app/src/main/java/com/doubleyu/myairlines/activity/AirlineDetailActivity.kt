@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import com.doubleyu.myairlines.Airline
 import com.doubleyu.myairlines.R
 import com.doubleyu.myairlines.helper.PicassoHelper
@@ -30,7 +30,7 @@ class AirlineDetailActivity : AppCompatActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContentView(com.doubleyu.myairlines.R.layout.activity_airline_detail)
+		setContentView(R.layout.activity_airline_detail)
 		airline = intent.getParcelableExtra(AIRLINE_EXTRA) as Airline
 		bindUI()
 	}

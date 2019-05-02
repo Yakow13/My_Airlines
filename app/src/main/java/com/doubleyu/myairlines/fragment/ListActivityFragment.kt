@@ -3,10 +3,6 @@ package com.doubleyu.myairlines.fragment
 import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v4.app.Fragment
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,10 +14,11 @@ import com.doubleyu.myairlines.asynctask.RequestAirlinesData
 import com.doubleyu.myairlines.listener.NetworkTaskListener
 import com.doubleyu.myairlines.manager.AirlineManager
 import com.doubleyu.myairlines.manager.FilterOption
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_airlines_list.*
 import java.util.*
 
-class ListActivityFragment : Fragment(), NetworkTaskListener<List<Airline>> {
+class ListActivityFragment : androidx.fragment.app.Fragment(), NetworkTaskListener<List<Airline>> {
 
 	private val airlineManager: AirlineManager = AirlineManager
 	private lateinit var selectedFilter: FilterOption
@@ -64,9 +61,9 @@ class ListActivityFragment : Fragment(), NetworkTaskListener<List<Airline>> {
 
 	private fun initUI() {
 		swipeRefreshLayout.setOnRefreshListener { refreshData() }
-		airlines_rv.layoutManager = LinearLayoutManager(context)
+		airlines_rv.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
 		airlines_rv.adapter = listAdapter
-		airlines_rv.addItemDecoration(DividerItemDecoration(context, LinearLayout.VERTICAL))
+		airlines_rv.addItemDecoration(androidx.recyclerview.widget.DividerItemDecoration(context, LinearLayout.VERTICAL))
 	}
 
 	private fun refreshData() {
@@ -96,8 +93,8 @@ class ListActivityFragment : Fragment(), NetworkTaskListener<List<Airline>> {
 
 	override fun onFailure() {
 		swipeRefreshLayout.isRefreshing = false
-		Snackbar.make(main_layout, com.doubleyu.myairlines.R.string.no_connection, Snackbar.LENGTH_LONG)
-				.setAction(getString(com.doubleyu.myairlines.R.string.retry).toUpperCase()) { refreshData() }
+		Snackbar.make(main_layout, R.string.no_connection, Snackbar.LENGTH_LONG)
+				.setAction(getString(R.string.retry).toUpperCase()) { refreshData() }
 				.show()
 	}
 }
