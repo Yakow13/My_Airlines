@@ -10,19 +10,24 @@ import android.widget.LinearLayout
 import com.doubleyu.myairlines.Airline
 import com.doubleyu.myairlines.AirlinesListAdapter
 import com.doubleyu.myairlines.R
-import com.doubleyu.myairlines.asynctask.RequestAirlinesData
-import com.doubleyu.myairlines.listener.NetworkTaskListener
+import com.doubleyu.myairlines.api.KayakAPI
 import com.doubleyu.myairlines.manager.AirlineManager
 import com.doubleyu.myairlines.manager.FilterOption
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_airlines_list.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 
-class ListActivityFragment : androidx.fragment.app.Fragment(), NetworkTaskListener<List<Airline>> {
+class ListActivityFragment : androidx.fragment.app.Fragment() {
 
 	private val airlineManager: AirlineManager = AirlineManager
 	private lateinit var selectedFilter: FilterOption
 	private lateinit var listAdapter: AirlinesListAdapter
+	private val kayakAPI by lazy {
+		KayakAPI.create()
+	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -69,7 +74,23 @@ class ListActivityFragment : androidx.fragment.app.Fragment(), NetworkTaskListen
 	private fun refreshData() {
 		swipeRefreshLayout.isRefreshing = true
 		if (isNetworkAvailable(context)) {
-			RequestAirlinesData(this).execute()
+			val callback = object : Callback<List<Airline>> {
+
+				override fun onResponse(call: Call<List<Airline>>, response: Response<List<Airline>>) {
+					if (response.isSuccessful && response.body() != null) {
+						onSuccess(response.body()!!)
+					} else {
+						onFailure()
+					}
+				}
+
+				override fun onFailure(call: Call<List<Airline>>, t: Throwable) {
+					onFailure()
+				}
+			}
+			val call = kayakAPI.getAirlines()
+
+			call.enqueue(callback)
 		} else {
 			onFailure()
 		}
@@ -81,17 +102,17 @@ class ListActivityFragment : androidx.fragment.app.Fragment(), NetworkTaskListen
 		return activeNetworkInfo != null && activeNetworkInfo.isConnected
 	}
 
-	private fun updateAllAirlines(airlines: ArrayList<Airline>) {
+	private fun updateAllAirlines(airlines: List<Airline>) {
 		airlineManager.updateAllAirlines(airlines)
 		listAdapter.setData(airlineManager.filter(selectedFilter))
 	}
 
-	override fun onSuccess(result: List<Airline>) {
+	private fun onSuccess(result: List<Airline>) {
 		swipeRefreshLayout.isRefreshing = false
 		updateAllAirlines(result as ArrayList)
 	}
 
-	override fun onFailure() {
+	private fun onFailure() {
 		swipeRefreshLayout.isRefreshing = false
 		Snackbar.make(main_layout, R.string.no_connection, Snackbar.LENGTH_LONG)
 				.setAction(getString(R.string.retry).toUpperCase()) { refreshData() }
