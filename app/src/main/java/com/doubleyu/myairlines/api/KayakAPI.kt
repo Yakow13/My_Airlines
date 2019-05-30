@@ -1,15 +1,14 @@
 package com.doubleyu.myairlines.api
 
-import com.doubleyu.myairlines.Airline
+import com.doubleyu.myairlines.model.Airline
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 
-interface KayakAPI{
+interface KayakAPI {
 	@GET("airlines")
-	fun getAirlines () : Call<List<Airline>>
-
+	fun getAirlines(): Call<List<Airline>>
 
 	companion object {
 		fun create(): KayakAPI {

@@ -1,4 +1,4 @@
-package com.doubleyu.myairlines
+package com.doubleyu.myairlines.model
 
 import android.os.Parcel
 import android.os.Parcelable

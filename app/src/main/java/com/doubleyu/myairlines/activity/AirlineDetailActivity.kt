@@ -1,67 +1,57 @@
 package com.doubleyu.myairlines.activity
 
-import android.content.Context
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.doubleyu.myairlines.Airline
+import androidx.databinding.DataBindingUtil
 import com.doubleyu.myairlines.R
-import com.doubleyu.myairlines.helper.PicassoHelper
+import com.doubleyu.myairlines.databinding.ActivityAirlineDetailBinding
 import com.doubleyu.myairlines.manager.AirlineManager
+import com.doubleyu.myairlines.model.Airline
 import kotlinx.android.synthetic.main.activity_airline_detail.*
 
 class AirlineDetailActivity : AppCompatActivity() {
-
-	private lateinit var airline: Airline
+	private val airline: Airline by lazy {
+		intent.getParcelableExtra(AIRLINE_EXTRA) as Airline
+	}
 	private var favoriteEdited: Boolean = false
-	private val listener: View.OnClickListener
-		get() = View.OnClickListener {
-			favoriteEdited = true
-			if (AirlineManager.isFavorite(airline)) {
-				airline_detail_favorite.setImageDrawable(getDrawable(R.drawable.ic_baseline_star_border))
-				AirlineManager.removeFavorite(airline)
-			} else {
-				airline_detail_favorite.setImageDrawable(getDrawable(R.drawable.ic_baseline_star))
-				AirlineManager.addFavorite(airline)
-			}
-		}
+	private val airlineManager = AirlineManager
+	val isAirlineFavorite: Boolean
+		get() = AirlineManager.isFavorite(airline)
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContentView(R.layout.activity_airline_detail)
-		airline = intent.getParcelableExtra(AIRLINE_EXTRA) as Airline
-		bindUI()
-	}
-
-	override fun onPause() {
-		super.onPause()
+		val binding: ActivityAirlineDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_airline_detail)
+		binding.airline = airline
+		binding.activity = this
+		savedInstanceState?.getBoolean(FAVORITE_EDITED)?.let { favoriteEdited = it }
 		if (favoriteEdited) {
-			AirlineManager.saveFavoriteAirlines()
+			setResult(Activity.RESULT_OK)
 		}
 	}
 
-	private fun bindUI() {
-		PicassoHelper.loadImageInto(airline.logoURL, airline_detail_logo)
-		airline_detail_name.text = airline.defaultName
-		airline_detail_phone_number.text = airline.phone
-		airline_detail_web_address.text = airline.site
+	override fun onStop() {
+		super.onStop()
+		if (favoriteEdited) {
+			airlineManager.saveFavoriteAirlines()
+		}
+	}
 
-		airline_detail_favorite.setImageDrawable(if (AirlineManager.isFavorite(airline))
-			getDrawable(R.drawable.ic_baseline_star)
-		else getDrawable(R.drawable.ic_baseline_star_border))
-
-		airline_detail_favorite.setOnClickListener(listener)
-
-		if (airline.site.isEmpty()) {
-			airline_detail_web_button.isEnabled = false
+	fun onFavoriteClick() {
+		setResult(Activity.RESULT_OK)
+		favoriteEdited = true
+		if (isAirlineFavorite) {
+			airline_detail_favorite.setImageDrawable(getDrawable(R.drawable.ic_baseline_star_border))
+			airlineManager.removeFavorite(airline)
 		} else {
-			airline_detail_web_button.setOnClickListener { openWebpageInExternalBrowser(airline.site) }
+			airline_detail_favorite.setImageDrawable(getDrawable(R.drawable.ic_baseline_star))
+			airlineManager.addFavorite(airline)
 		}
 	}
 
-	private fun openWebpageInExternalBrowser(url: String) {
+	fun openWebpageInExternalBrowser(url: String) {
 		val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(prepareUrl(url)))
 		this.startActivity(browserIntent)
 	}
@@ -70,13 +60,20 @@ class AirlineDetailActivity : AppCompatActivity() {
 		return "http://$url"
 	}
 
+	override fun onSaveInstanceState(outState: Bundle?) {
+		outState?.putBoolean(FAVORITE_EDITED, favoriteEdited)
+		super.onSaveInstanceState(outState)
+	}
+
 	companion object {
-		fun startActivity(context: Context, airline: Airline) {
-			val intent = Intent(context, AirlineDetailActivity::class.java)
+		fun startActivityForResult(activity: Activity, airline: Airline) {
+			val intent = Intent(activity, AirlineDetailActivity::class.java)
 			intent.putExtra(AIRLINE_EXTRA, airline)
-			context.startActivity(intent)
+			activity.startActivityForResult(intent, FAVORITE_SET_CHANGED_REQUEST)
 		}
 
 		private const val AIRLINE_EXTRA = "AIRLINE_EXTRA"
+		private const val FAVORITE_EDITED = "FAVORITE_EDITED"
+		const val FAVORITE_SET_CHANGED_REQUEST = 1
 	}
 }

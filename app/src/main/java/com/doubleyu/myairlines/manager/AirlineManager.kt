@@ -2,36 +2,25 @@ package com.doubleyu.myairlines.manager
 
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import com.doubleyu.myairlines.Airline
 import com.doubleyu.myairlines.MyAirlinesApplication
+import com.doubleyu.myairlines.model.Airline
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import java.util.ArrayList
-import kotlin.collections.HashSet
 
 object AirlineManager {
-
 	private const val FAVORITE_AIRLINES = "FAVORITE_AIRLINES"
 	private val typeToken = object : TypeToken<MutableSet<String>>() {}.type
 	private var favoriteAirlines: MutableSet<String> = HashSet()
 	private val preferences: SharedPreferences
 		get() = PreferenceManager.getDefaultSharedPreferences(MyAirlinesApplication.instance)
 
-	private var allAirlines: List<Airline> = ArrayList()
-	val hasData : Boolean
-		get() {return allAirlines.isNotEmpty()}
-
-
+	var selectedFilter : FilterOption? = null
 
 	init {
 		val restoredData = getString(FAVORITE_AIRLINES, "")
 		if (!restoredData.isNullOrEmpty()) {
 			favoriteAirlines = Gson().fromJson(restoredData, typeToken)
 		}
-	}
-
-	fun updateAllAirlines(allAirlines: List<Airline>) {
-		this.allAirlines = allAirlines
 	}
 
 	fun isFavorite(airline: Airline): Boolean {
@@ -46,17 +35,19 @@ object AirlineManager {
 		favoriteAirlines.remove(airline.code)
 	}
 
-
-	fun filter(filter: FilterOption): List<Airline> {
-		return allAirlines.filter { airline -> meetsPredicate(airline, filter) }
+	fun filter(allAirlines : List<Airline>): List<Airline> {
+		return allAirlines.filter { airline -> meetsPredicate(airline) }
 	}
 
 	fun saveFavoriteAirlines() {
 		setString(FAVORITE_AIRLINES, Gson().toJson(favoriteAirlines, typeToken))
 	}
 
-	private fun meetsPredicate(airline: Airline, filter: FilterOption): Boolean {
-		val result: Boolean = when (filter) {
+	private fun meetsPredicate(airline: Airline) : Boolean {
+		if(selectedFilter == null) {
+			throw IllegalStateException("Selected filter must be defined")
+		}
+		val result: Boolean = when (selectedFilter!!) {
 			FilterOption.ALL -> true
 			FilterOption.FAVORITE -> favoriteAirlines.contains(airline.code)
 		}

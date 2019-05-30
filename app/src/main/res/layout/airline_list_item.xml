@@ -1,28 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="100dp"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingStart="40dp"
-    android:paddingTop="10dp"
-    android:paddingEnd="40dp"
-    android:paddingBottom="10dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageView
-        android:id="@+id/airline_list_item_logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="40dp"
-        tools:src="@mipmap/ic_launcher" />
+    <data>
+        <variable
+            name="airline"
+            type="com.doubleyu.myairlines.model.Airline" />
+        <variable
+            name="listener"
+            type="com.doubleyu.myairlines.listener.OnAirlineSelectedListener" />
+    </data>
 
-    <TextView
-        android:id="@+id/airline_list_item_name"
-        style="@style/BasicText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        tools:text="Slovensky narodny prepravca" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="40dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="40dp"
+        android:paddingBottom="10dp"
+        android:onClick="@{() -> listener.onClick(airline)}">
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/airline_list_item_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            app:imageUrl="@{airline.logoURL}"
+            android:contentDescription="@string/airline_logo"
+            tools:src="@mipmap/ic_launcher" />
+
+        <TextView
+            android:id="@+id/airline_list_item_name"
+            style="@style/BasicText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@{airline.defaultName}"
+            tools:text="Slovensky narodny prepravca" />
+    </LinearLayout>
+</layout>

@@ -2,19 +2,21 @@ package com.doubleyu.myairlines
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import com.doubleyu.myairlines.activity.AirlineDetailActivity
-import com.doubleyu.myairlines.helper.PicassoHelper
-import kotlinx.android.synthetic.main.airline_list_item.view.*
+import androidx.databinding.DataBindingUtil
+import com.doubleyu.myairlines.databinding.AirlineListItemBinding
+import com.doubleyu.myairlines.listener.OnAirlineSelectedListener
+import com.doubleyu.myairlines.model.Airline
 
 class AirlinesListAdapter(private val context: Context) : androidx.recyclerview.widget.RecyclerView.Adapter<AirlinesListAdapter.ViewHolder>() {
 
 	private var airlines: List<Airline> = ArrayList()
+	var onAirlineSelectedListener: OnAirlineSelectedListener? = null
 
 	override fun onCreateViewHolder(p0: ViewGroup, p1: Int): ViewHolder {
-		val view = LayoutInflater.from(context).inflate(R.layout.airline_list_item, p0, false)
-		return ViewHolder(view)
+		val inflater = LayoutInflater.from(context)
+		val binding: AirlineListItemBinding = DataBindingUtil.inflate(inflater,R.layout.airline_list_item, p0, false)
+		return ViewHolder(binding, onAirlineSelectedListener)
 	}
 
 	override fun getItemCount(): Int {
@@ -30,18 +32,12 @@ class AirlinesListAdapter(private val context: Context) : androidx.recyclerview.
 		notifyDataSetChanged()
 	}
 
-	class ViewHolder(private val view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
-		private val airlineLogo = view.airline_list_item_logo
-		private val airlineName = view.airline_list_item_name
-
-		private fun onItemSelected(airline: Airline, context: Context) {
-			AirlineDetailActivity.startActivity(context, airline)
-		}
+	class ViewHolder(private val binding: AirlineListItemBinding, private var onAirlineSelectedListener: OnAirlineSelectedListener?)
+		: androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
 
 		fun bind(airline: Airline) {
-			view.setOnClickListener { onItemSelected(airline, view.context) }
-			airlineName.text = airline.defaultName
-			PicassoHelper.loadImageInto(airline.logoURL, airlineLogo)
+			binding.airline = airline
+			binding.listener = onAirlineSelectedListener
 		}
 	}
 }

@@ -1,32 +1,40 @@
 package com.doubleyu.myairlines.fragment
 
-import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import com.doubleyu.myairlines.Airline
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.doubleyu.myairlines.AirlinesListAdapter
 import com.doubleyu.myairlines.R
-import com.doubleyu.myairlines.api.KayakAPI
-import com.doubleyu.myairlines.manager.AirlineManager
+import com.doubleyu.myairlines.activity.AirlineDetailActivity
+import com.doubleyu.myairlines.databinding.FragmentAirlinesListBinding
+import com.doubleyu.myairlines.listener.OnAirlineSelectedListener
 import com.doubleyu.myairlines.manager.FilterOption
+import com.doubleyu.myairlines.model.Airline
+import com.doubleyu.myairlines.viewmodel.ListViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_airlines_list.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.util.*
 
 class ListActivityFragment : androidx.fragment.app.Fragment() {
-
-	private val airlineManager: AirlineManager = AirlineManager
-	private lateinit var selectedFilter: FilterOption
 	private lateinit var listAdapter: AirlinesListAdapter
-	private val kayakAPI by lazy {
-		KayakAPI.create()
+	private val viewModel: ListViewModel by lazy {
+		ViewModelProviders.of(this).get(ListViewModel::class.java)
+	}
+	private val taskStatusObserver = Observer<ListViewModel.TaskStatus> {
+		if (it == ListViewModel.TaskStatus.FAIL) {
+			onFailure()
+		} else if (it == ListViewModel.TaskStatus.RUNNING) {
+			swipeRefreshLayout.isRefreshing = true
+		}
+	}
+	private val onAirlineSelectedListener = object : OnAirlineSelectedListener() {
+		override fun onClick(airline: Airline) {
+			AirlineDetailActivity.startActivityForResult(activity!!, airline)
+		}
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,85 +45,52 @@ class ListActivityFragment : androidx.fragment.app.Fragment() {
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		super.onCreateView(inflater, container, savedInstanceState)
-		return inflater.inflate(R.layout.fragment_airlines_list, container, false)
+		val binding: FragmentAirlinesListBinding =
+				DataBindingUtil.inflate(inflater, R.layout.fragment_airlines_list, container, false)
+		binding.viewModel = viewModel
+		return binding.root
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
-		listAdapter = AirlinesListAdapter(context!!)
-		selectedFilter = FilterOption.ALL
 		initUI()
-
-		if (!airlineManager.hasData) {
-			refreshData()
+		viewModel.selectedAirlines.observe(this, Observer<List<Airline>> { t -> onSuccess(t) })
+		viewModel.taskStatus.observe(this, taskStatusObserver)
+		if (!viewModel.hasData) {
+			viewModel.refreshAllAirlines()
 		}
 	}
 
-	override fun onResume() {
-		super.onResume()
-		if (selectedFilter == FilterOption.FAVORITE) {
-			listAdapter.setData(airlineManager.filter(selectedFilter))
-		}
+	fun favoriteSetChanged() {
+		viewModel.favoriteSetChanged()
 	}
 
-	fun setFilter(selection: FilterOption) {
-		selectedFilter = selection
-		listAdapter.setData(airlineManager.filter(selectedFilter))
+	fun setFilter(selection: FilterOption, userSelect: Boolean) {
+		viewModel.setFilter(selection)
+		if (userSelect) viewModel.filter()
 	}
-
 
 	private fun initUI() {
-		swipeRefreshLayout.setOnRefreshListener { refreshData() }
+		swipeRefreshLayout.isRefreshing = viewModel.taskStatus.value == ListViewModel.TaskStatus.RUNNING
 		airlines_rv.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+		listAdapter = AirlinesListAdapter(context!!)
+		listAdapter.onAirlineSelectedListener = onAirlineSelectedListener
 		airlines_rv.adapter = listAdapter
 		airlines_rv.addItemDecoration(androidx.recyclerview.widget.DividerItemDecoration(context, LinearLayout.VERTICAL))
-	}
-
-	private fun refreshData() {
-		swipeRefreshLayout.isRefreshing = true
-		if (isNetworkAvailable(context)) {
-			val callback = object : Callback<List<Airline>> {
-
-				override fun onResponse(call: Call<List<Airline>>, response: Response<List<Airline>>) {
-					if (response.isSuccessful && response.body() != null) {
-						onSuccess(response.body()!!)
-					} else {
-						onFailure()
-					}
-				}
-
-				override fun onFailure(call: Call<List<Airline>>, t: Throwable) {
-					onFailure()
-				}
-			}
-			val call = kayakAPI.getAirlines()
-
-			call.enqueue(callback)
-		} else {
-			onFailure()
+		viewModel.selectedAirlines.value?.let {
+			listAdapter.setData(it)
 		}
-	}
-
-	private fun isNetworkAvailable(context: Context?): Boolean {
-		val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-		val activeNetworkInfo = connectivityManager.activeNetworkInfo
-		return activeNetworkInfo != null && activeNetworkInfo.isConnected
-	}
-
-	private fun updateAllAirlines(airlines: List<Airline>) {
-		airlineManager.updateAllAirlines(airlines)
-		listAdapter.setData(airlineManager.filter(selectedFilter))
 	}
 
 	private fun onSuccess(result: List<Airline>) {
 		swipeRefreshLayout.isRefreshing = false
-		updateAllAirlines(result as ArrayList)
+		listAdapter.setData(result)
 	}
 
 	private fun onFailure() {
 		swipeRefreshLayout.isRefreshing = false
 		Snackbar.make(main_layout, R.string.no_connection, Snackbar.LENGTH_LONG)
-				.setAction(getString(R.string.retry).toUpperCase()) { refreshData() }
+				.setAction(getString(R.string.retry).toUpperCase()) { viewModel.refreshAllAirlines() }
 				.show()
 	}
 }
