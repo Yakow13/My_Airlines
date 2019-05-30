@@ -22,3 +22,5 @@ Airline Details:
 Used technologies:
 - AndroidX
 - Picasso
+- Gson
+- RecyclerView
