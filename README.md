@@ -1,7 +1,7 @@
 # My_Airlines
 Assigment for work interview
 
-## First version with limited libs. For imho better solution check "ao" branch
+### First version with limited libs. For imho better solution check "ao" branch
 
 Goal is to create a sample app that displays information about
 various airlines. Using open source or 3rd party libraries is allowed but should not be done
