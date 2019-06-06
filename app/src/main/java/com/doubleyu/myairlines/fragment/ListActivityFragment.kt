@@ -37,12 +37,6 @@ class ListActivityFragment : androidx.fragment.app.Fragment() {
 		}
 	}
 
-	override fun onCreate(savedInstanceState: Bundle?) {
-		super.onCreate(savedInstanceState)
-		// list of allAirlines is too big to save via saveInstanceState
-		retainInstance = true
-	}
-
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		super.onCreateView(inflater, container, savedInstanceState)
 		val binding: FragmentAirlinesListBinding =
@@ -54,8 +48,8 @@ class ListActivityFragment : androidx.fragment.app.Fragment() {
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		initUI()
-		viewModel.selectedAirlines.observe(this, Observer<List<Airline>> { t -> onSuccess(t) })
-		viewModel.taskStatus.observe(this, taskStatusObserver)
+		viewModel.selectedAirlines.observe(viewLifecycleOwner, Observer<List<Airline>> { t -> onSuccess(t) })
+		viewModel.taskStatus.observe(viewLifecycleOwner, taskStatusObserver)
 		if (!viewModel.hasData) {
 			viewModel.refreshAllAirlines()
 		}
@@ -77,9 +71,6 @@ class ListActivityFragment : androidx.fragment.app.Fragment() {
 		listAdapter.onAirlineSelectedListener = onAirlineSelectedListener
 		airlines_rv.adapter = listAdapter
 		airlines_rv.addItemDecoration(androidx.recyclerview.widget.DividerItemDecoration(context, LinearLayout.VERTICAL))
-		viewModel.selectedAirlines.value?.let {
-			listAdapter.setData(it)
-		}
 	}
 
 	private fun onSuccess(result: List<Airline>) {
